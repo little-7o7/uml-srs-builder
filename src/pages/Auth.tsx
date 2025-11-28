@@ -127,22 +127,34 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-2">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Package className="h-8 w-8 text-primary" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+      
+      <Card className="w-full max-w-md shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 animate-in slide-in-from-bottom relative z-10">
+        <CardHeader className="space-y-1 text-center pb-6">
+          <div className="flex justify-center mb-4">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg animate-in slide-in-from-top">
+              <Package className="h-10 w-10 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold">SIMS</CardTitle>
-          <CardDescription>Simple Inventory Management System</CardDescription>
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            SIMS
+          </CardTitle>
+          <CardDescription className="text-base">Simple Inventory Management System</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-6">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Login
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Sign Up
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
@@ -171,7 +183,7 @@ export default function Auth() {
                     maxLength={100}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Log In"}
                 </Button>
               </form>
@@ -215,12 +227,19 @@ export default function Auth() {
                     maxLength={100}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={isLoading}>
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
+          
+          {/* Hint */}
+          <div className="mt-6 pt-4 border-t border-border/50 text-center">
+            <p className="text-sm text-muted-foreground">
+              <strong>Demo credentials:</strong> admin / admin123
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

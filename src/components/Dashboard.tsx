@@ -3,11 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, TrendingDown, AlertCircle, BarChart3 } from "lucide-react";
+import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProductTable } from "./ProductTable";
 import { AddProductDialog } from "./AddProductDialog";
+import { StatsCard } from "./StatsCard";
+import { SearchBar } from "./SearchBar";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 // Interface for product data structure
 interface Product {
@@ -23,8 +26,10 @@ export function Dashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Fetch products from database
   const fetchProducts = async () => {
@@ -36,6 +41,11 @@ export function Dashboard() {
 
     if (error) {
       console.error("Error fetching products:", error);
+      toast({
+        title: "Error Loading Products",
+        description: "Failed to load products. Please try again.",
+        variant: "destructive",
+      });
     } else {
       setProducts(data || []);
     }
@@ -51,34 +61,42 @@ export function Dashboard() {
   const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold);
   const outOfStockProducts = products.filter(p => p.quantity === 0);
   const totalValue = products.reduce((sum, p) => sum + (p.quantity * Number(p.price)), 0);
+  
+  // Filter products based on search query
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-card/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+                <Package className="h-7 w-7 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">SIMS Dashboard</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  SIMS Dashboard
+                </h1>
                 <p className="text-sm text-muted-foreground">Simple Inventory Management System</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => navigate("/reports")}>
+              <Button variant="outline" onClick={() => navigate("/reports")} className="hover:bg-primary/10">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Reports
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
                 {isAdmin && (
-                  <Badge variant="secondary">Admin</Badge>
+                  <Badge className="bg-gradient-to-r from-primary to-secondary">Admin</Badge>
                 )}
               </div>
-              <Button variant="ghost" onClick={signOut}>
+              <Button variant="ghost" onClick={signOut} className="hover:bg-destructive/10 hover:text-destructive">
                 Logout
               </Button>
             </div>
@@ -89,57 +107,47 @@ export function Dashboard() {
       {/* Statistics Cards */}
       <div className="container mx-auto px-4 py-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
-              <p className="text-xs text-muted-foreground">Active inventory items</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-              <TrendingDown className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{lowStockProducts.length}</div>
-              <p className="text-xs text-muted-foreground">Items need restocking</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">{outOfStockProducts.length}</div>
-              <p className="text-xs text-muted-foreground">Items unavailable</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-              <BarChart3 className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">${totalValue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Current inventory value</p>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Total Products"
+            value={totalProducts}
+            icon={Package}
+            description="Active inventory items"
+            variant="default"
+          />
+          
+          <StatsCard
+            title="Total Value"
+            value={`$${totalValue.toFixed(2)}`}
+            icon={DollarSign}
+            description="Current inventory value"
+            variant="success"
+          />
+          
+          <StatsCard
+            title="Low Stock"
+            value={lowStockProducts.length}
+            icon={TrendingDown}
+            description="Items need restocking"
+            variant="warning"
+          />
+          
+          <StatsCard
+            title="Out of Stock"
+            value={outOfStockProducts.length}
+            icon={AlertCircle}
+            description="Items unavailable"
+            variant="danger"
+          />
         </div>
 
         {/* Low Stock Alerts */}
         {lowStockProducts.length > 0 && (
-          <Card className="mb-6 border-warning">
+          <Card className="mb-6 border-warning/50 bg-gradient-to-r from-warning/5 to-transparent animate-in slide-in-from-top-2 duration-500">
             <CardHeader>
               <CardTitle className="text-warning flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
+                <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center animate-pulse">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
                 Low Stock Alert
               </CardTitle>
               <CardDescription>
@@ -148,14 +156,18 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {lowStockProducts.slice(0, 5).map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-2 bg-warning/5 rounded">
+                {lowStockProducts.slice(0, 5).map((product, index) => (
+                  <div 
+                    key={product.id} 
+                    className="flex items-center justify-between p-3 bg-card rounded-lg border border-warning/20 hover:border-warning/40 transition-all duration-200 hover:shadow-md"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
                     <div>
                       <p className="font-medium">{product.name}</p>
                       <p className="text-sm text-muted-foreground">{product.category}</p>
                     </div>
-                    <Badge variant={product.quantity === 0 ? "destructive" : "secondary"}>
-                      {product.quantity} units left
+                    <Badge variant={product.quantity === 0 ? "destructive" : "secondary"} className="font-semibold">
+                      {product.quantity} {product.quantity === 0 ? '⚠️' : 'units'}
                     </Badge>
                   </div>
                 ))}
@@ -165,28 +177,40 @@ export function Dashboard() {
         )}
 
         {/* Products Table */}
-        <Card>
+        <Card className="border-border/50 shadow-xl">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <CardTitle>Product Inventory</CardTitle>
+                <CardTitle className="text-xl">Product Inventory</CardTitle>
                 <CardDescription>Manage your product stock and pricing</CardDescription>
               </div>
-              {isAdmin && (
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              )}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <SearchBar 
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search products..."
+                />
+                {isAdmin && (
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="whitespace-nowrap">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             <ProductTable
-              products={products}
+              products={filteredProducts}
               loading={loading}
               onRefresh={fetchProducts}
               isAdmin={isAdmin}
             />
+            {filteredProducts.length === 0 && !loading && (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchQuery ? `No products found matching "${searchQuery}"` : "No products in inventory"}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
