@@ -1,9 +1,23 @@
+/**
+ * Dashboard.tsx - Главная панель управления SIMS
+ * 
+ * Компонент отображает:
+ * - Статистику по товарам (общее количество, стоимость, низкий запас)
+ * - Графики и диаграммы инвентаря
+ * - Таблицу товаров с поиском и фильтрацией
+ * - Оповещения о низком запасе
+ * 
+ * @component
+ * @example
+ * <Dashboard />
+ */
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign, History } from "lucide-react";
+import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign, History, Presentation } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductTable } from "./ProductTable";
@@ -99,6 +113,10 @@ export function Dashboard() {
                   {language === "ru" ? "История" : "History"}
                 </Button>
               )}
+              <Button variant="outline" onClick={() => navigate("/presentation")} className="hover:bg-primary/10">
+                <Presentation className="h-4 w-4 mr-2" />
+                {language === "ru" ? "О проекте" : "About"}
+              </Button>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
                 {userRole && (
