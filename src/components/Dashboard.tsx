@@ -12,6 +12,7 @@ import { StatsCard } from "./StatsCard";
 import { SearchBar } from "./SearchBar";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { InventoryCharts } from "./InventoryCharts";
+import { ThemeToggle } from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -86,6 +87,7 @@ export function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <LanguageSwitcher />
               <Button variant="outline" onClick={() => navigate("/reports")} className="hover:bg-primary/10">
                 <BarChart3 className="h-4 w-4 mr-2" />
