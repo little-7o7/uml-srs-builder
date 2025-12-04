@@ -33,6 +33,12 @@ export default function AuditLog() {
   const { language } = useLanguage();
 
   useEffect(() => {
+    // Redirect non-admin users
+    if (userRole && userRole !== 'admin') {
+      navigate('/');
+      return;
+    }
+
     const fetchLogs = async () => {
       const { data, error } = await supabase
         .from("audit_log")
@@ -46,8 +52,10 @@ export default function AuditLog() {
       setLoading(false);
     };
 
-    fetchLogs();
-  }, []);
+    if (userRole === 'admin') {
+      fetchLogs();
+    }
+  }, [userRole, navigate]);
 
   const getActionBadge = (action: string) => {
     switch (action) {
