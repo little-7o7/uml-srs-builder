@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { z } from "zod";
 
 // Validation schema for product data
@@ -32,6 +33,7 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
     low_stock_threshold: 10,
   });
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,8 +64,8 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
         // Check for duplicate product error
         if (error.code === "23505") {
           toast({
-            title: "Duplicate Product",
-            description: "A product with this name and category already exists",
+            title: t.duplicateProduct,
+            description: t.duplicateProductDesc,
             variant: "destructive",
           });
           return;
@@ -72,8 +74,8 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
       }
 
       toast({
-        title: "Product Added",
-        description: "Product has been successfully added to inventory",
+        title: t.productAdded,
+        description: t.productAddedDesc,
       });
 
       // Reset form and close dialog
@@ -89,14 +91,14 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "Validation Error",
+          title: t.validationError,
           description: error.errors[0].message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to add product. Please try again.",
+          title: t.error,
+          description: t.failedToAdd,
           variant: "destructive",
         });
       }
@@ -109,31 +111,31 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>{t.addNewProduct}</DialogTitle>
           <DialogDescription>
-            Enter product details to add to inventory
+            {t.enterProductDetails}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Product Name *</Label>
+            <Label htmlFor="name">{t.productName} *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Laptop, Phone, Monitor"
+              placeholder={t.productNamePlaceholder}
               required
               maxLength={200}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
+            <Label htmlFor="category">{t.category} *</Label>
             <Input
               id="category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="e.g., Electronics, Office Supplies"
+              placeholder={t.categoryPlaceholder}
               required
               maxLength={100}
             />
@@ -141,7 +143,7 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity *</Label>
+              <Label htmlFor="quantity">{t.quantity} *</Label>
               <Input
                 id="quantity"
                 type="number"
@@ -153,7 +155,7 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($) *</Label>
+              <Label htmlFor="price">{t.price} ($) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -167,7 +169,7 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="threshold">Low Stock Threshold *</Label>
+            <Label htmlFor="threshold">{t.lowStockThreshold} *</Label>
             <Input
               id="threshold"
               type="number"
@@ -177,16 +179,16 @@ export function AddProductDialog({ open, onOpenChange, onSuccess }: AddProductDi
               required
             />
             <p className="text-xs text-muted-foreground">
-              Alert will show when quantity falls below this number
+              {t.alertWhenBelow}
             </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t.cancel}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Product"}
+              {loading ? t.adding : t.addProductBtn}
             </Button>
           </div>
         </form>

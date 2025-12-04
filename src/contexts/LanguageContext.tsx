@@ -53,6 +53,38 @@ interface Translations {
   save: string;
   add: string;
   
+  // Dialog form labels
+  productName: string;
+  enterProductDetails: string;
+  updateProductDetails: string;
+  lowStockThreshold: string;
+  alertWhenBelow: string;
+  addProductBtn: string;
+  updateProductBtn: string;
+  adding: string;
+  updating: string;
+  deleting: string;
+  cannotBeUndone: string;
+  
+  // Toast messages
+  productAdded: string;
+  productAddedDesc: string;
+  productUpdated: string;
+  productUpdatedDesc: string;
+  productDeleted: string;
+  productDeletedDesc: string;
+  duplicateProduct: string;
+  duplicateProductDesc: string;
+  validationError: string;
+  error: string;
+  failedToAdd: string;
+  failedToUpdate: string;
+  failedToDelete: string;
+  
+  // Placeholders
+  productNamePlaceholder: string;
+  categoryPlaceholder: string;
+  
   // Reports
   inventoryReports: string;
   reportsDescription: string;
@@ -113,6 +145,38 @@ const translations: Record<Language, Translations> = {
     save: "Save",
     add: "Add",
     
+    // Dialog form labels
+    productName: "Product Name",
+    enterProductDetails: "Enter product details to add to inventory",
+    updateProductDetails: "Update product details and stock levels",
+    lowStockThreshold: "Low Stock Threshold",
+    alertWhenBelow: "Alert will show when quantity falls below this number",
+    addProductBtn: "Add Product",
+    updateProductBtn: "Update Product",
+    adding: "Adding...",
+    updating: "Updating...",
+    deleting: "Deleting...",
+    cannotBeUndone: "This action cannot be undone.",
+    
+    // Toast messages
+    productAdded: "Product Added",
+    productAddedDesc: "Product has been successfully added to inventory",
+    productUpdated: "Product Updated",
+    productUpdatedDesc: "Product information has been successfully updated",
+    productDeleted: "Product Deleted",
+    productDeletedDesc: "Product has been removed from inventory",
+    duplicateProduct: "Duplicate Product",
+    duplicateProductDesc: "A product with this name and category already exists",
+    validationError: "Validation Error",
+    error: "Error",
+    failedToAdd: "Failed to add product. Please try again.",
+    failedToUpdate: "Failed to update product. Please try again.",
+    failedToDelete: "Failed to delete product. Please try again.",
+    
+    // Placeholders
+    productNamePlaceholder: "e.g., Laptop, Phone, Monitor",
+    categoryPlaceholder: "e.g., Electronics, Office Supplies",
+    
     inventoryReports: "Inventory Reports",
     reportsDescription: "View and export inventory data",
     backToDashboard: "Back to Dashboard",
@@ -169,6 +233,38 @@ const translations: Record<Language, Translations> = {
     cancel: "Отмена",
     save: "Сохранить",
     add: "Добавить",
+    
+    // Dialog form labels
+    productName: "Название товара",
+    enterProductDetails: "Введите данные товара для добавления в инвентарь",
+    updateProductDetails: "Обновите данные товара и уровень запасов",
+    lowStockThreshold: "Порог низкого запаса",
+    alertWhenBelow: "Уведомление появится, когда количество упадет ниже этого числа",
+    addProductBtn: "Добавить товар",
+    updateProductBtn: "Обновить товар",
+    adding: "Добавление...",
+    updating: "Обновление...",
+    deleting: "Удаление...",
+    cannotBeUndone: "Это действие нельзя отменить.",
+    
+    // Toast messages
+    productAdded: "Товар добавлен",
+    productAddedDesc: "Товар успешно добавлен в инвентарь",
+    productUpdated: "Товар обновлен",
+    productUpdatedDesc: "Информация о товаре успешно обновлена",
+    productDeleted: "Товар удален",
+    productDeletedDesc: "Товар удален из инвентаря",
+    duplicateProduct: "Дублирующийся товар",
+    duplicateProductDesc: "Товар с таким названием и категорией уже существует",
+    validationError: "Ошибка валидации",
+    error: "Ошибка",
+    failedToAdd: "Не удалось добавить товар. Попробуйте снова.",
+    failedToUpdate: "Не удалось обновить товар. Попробуйте снова.",
+    failedToDelete: "Не удалось удалить товар. Попробуйте снова.",
+    
+    // Placeholders
+    productNamePlaceholder: "напр., Ноутбук, Телефон, Монитор",
+    categoryPlaceholder: "напр., Электроника, Канцелярия",
     
     inventoryReports: "Отчеты по инвентарю",
     reportsDescription: "Просмотр и экспорт данных",
