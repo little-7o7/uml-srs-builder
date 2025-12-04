@@ -3,11 +3,17 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+// User role type - matches database enum
+type UserRole = 'admin' | 'user' | 'viewer';
+
 // AuthContext provides authentication state and methods throughout the app
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userRole: UserRole | null;
   isAdmin: boolean;
+  isViewer: boolean;
+  canModify: boolean; // True if user can add/edit/delete products
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -17,23 +23,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check if user has admin role
-  const checkAdminStatus = async (userId: string) => {
+  // Computed permissions
+  const isAdmin = userRole === 'admin';
+  const isViewer = userRole === 'viewer';
+  const canModify = userRole === 'admin'; // Only admins can modify
+
+  // Check user role from database
+  const checkUserRole = async (userId: string) => {
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "admin")
       .maybeSingle();
 
     if (!error && data) {
-      setIsAdmin(true);
+      setUserRole(data.role as UserRole);
     } else {
-      setIsAdmin(false);
+      // Default to 'user' role if not found
+      setUserRole('user');
     }
   };
 
@@ -44,13 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Check admin status when user changes
+        // Check role when user changes
         if (currentSession?.user) {
           setTimeout(() => {
-            checkAdminStatus(currentSession.user.id);
+            checkUserRole(currentSession.user.id);
           }, 0);
         } else {
-          setIsAdmin(false);
+          setUserRole(null);
         }
         
         setLoading(false);
@@ -63,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
-        checkAdminStatus(currentSession.user.id);
+        checkUserRole(currentSession.user.id);
       }
       setLoading(false);
     });
@@ -75,12 +86,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setIsAdmin(false);
+    setUserRole(null);
     navigate("/auth");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      userRole, 
+      isAdmin, 
+      isViewer, 
+      canModify, 
+      loading, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

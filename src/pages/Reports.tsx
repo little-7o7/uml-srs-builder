@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Package, TrendingDown, AlertCircle, DollarSign } from "lucide-react";
+import { ArrowLeft, Package, TrendingDown, AlertCircle, DollarSign, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { exportProductsToCSV } from "@/utils/csvExport";
+import { useToast } from "@/hooks/use-toast";
 
 // Interface for product data structure
 interface Product {
@@ -23,7 +25,30 @@ export default function Reports() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, userRole } = useAuth();
+  const { toast } = useToast();
+
+  // Handle CSV export
+  const handleExportCSV = (type: 'full' | 'low-stock') => {
+    const dataToExport = type === 'low-stock' 
+      ? products.filter(p => p.quantity <= p.low_stock_threshold)
+      : products;
+    
+    if (dataToExport.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no products to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    exportProductsToCSV(dataToExport, type);
+    toast({
+      title: "Export Successful",
+      description: `${dataToExport.length} products exported to CSV.`,
+    });
+  };
 
   // Fetch all products for reporting
   useEffect(() => {
@@ -81,9 +106,22 @@ export default function Reports() {
                 <p className="text-sm text-muted-foreground">Detailed stock analysis and statistics</p>
               </div>
             </div>
-            <Button variant="ghost" onClick={signOut}>
-              Logout
-            </Button>
+            <div className="flex items-center gap-2">
+              {userRole && (
+                <Badge className={
+                  userRole === 'admin' 
+                    ? "bg-gradient-to-r from-primary to-secondary" 
+                    : userRole === 'viewer'
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-secondary"
+                }>
+                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                </Badge>
+              )}
+              <Button variant="ghost" onClick={signOut}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -135,6 +173,34 @@ export default function Reports() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Export Actions */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Export Reports</CardTitle>
+            <CardDescription>Download inventory data as CSV files</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                onClick={() => handleExportCSV('full')} 
+                variant="outline"
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Full Inventory
+              </Button>
+              <Button 
+                onClick={() => handleExportCSV('low-stock')} 
+                variant="outline"
+                className="gap-2 border-warning/50 hover:bg-warning/10"
+              >
+                <Download className="h-4 w-4" />
+                Export Low Stock Items
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Category Breakdown */}
         <Card className="mb-6">
