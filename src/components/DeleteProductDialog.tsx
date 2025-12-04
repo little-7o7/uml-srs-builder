@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Product {
   id: string;
@@ -19,6 +20,7 @@ interface DeleteProductDialogProps {
 export function DeleteProductDialog({ open, onOpenChange, product, onSuccess }: DeleteProductDialogProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Handle product deletion
   const handleDelete = async () => {
@@ -33,16 +35,16 @@ export function DeleteProductDialog({ open, onOpenChange, product, onSuccess }: 
 
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete product. Please try again.",
+        title: t.error,
+        description: t.failedToDelete,
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "Product Deleted",
-      description: "Product has been removed from inventory",
+      title: t.productDeleted,
+      description: t.productDeletedDesc,
     });
 
     onOpenChange(false);
@@ -53,16 +55,16 @@ export function DeleteProductDialog({ open, onOpenChange, product, onSuccess }: 
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Product</AlertDialogTitle>
+          <AlertDialogTitle>{t.deleteProduct}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{product.name}</strong> ({product.category})?
-            This action cannot be undone.
+            {t.deleteConfirm} <strong>{product.name}</strong> ({product.category})?
+            {" "}{t.cannotBeUndone}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t.cancel}</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? t.deleting : t.delete}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
