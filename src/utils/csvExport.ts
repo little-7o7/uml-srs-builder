@@ -12,37 +12,59 @@ interface Product {
   low_stock_threshold: number;
 }
 
+// Use semicolon for better Excel compatibility (especially Russian/European locales)
+const DELIMITER = ';';
+
+/**
+ * Escapes a value for CSV format
+ */
+function escapeCSV(value: string | number): string {
+  const str = String(value);
+  // If contains delimiter, quotes, or newlines - wrap in quotes and escape existing quotes
+  if (str.includes(DELIMITER) || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
 /**
  * Converts an array of products to CSV format
  * @param products - Array of product objects
+ * @param language - Language for headers ('en' | 'ru')
  * @returns CSV string
  */
-export function productsToCSV(products: Product[]): string {
-  // CSV header row
-  const headers = ['Product Name', 'Category', 'Quantity', 'Price (USD)', 'Low Stock Threshold', 'Status', 'Value (USD)'];
+export function productsToCSV(products: Product[], language: 'en' | 'ru' = 'en'): string {
+  // Headers based on language
+  const headers = language === 'ru' 
+    ? ['Название', 'Категория', 'Количество', 'Цена (USD)', 'Порог низкого запаса', 'Статус', 'Стоимость (USD)']
+    : ['Product Name', 'Category', 'Quantity', 'Price (USD)', 'Low Stock Threshold', 'Status', 'Value (USD)'];
   
+  const statusLabels = language === 'ru'
+    ? { outOfStock: 'Нет в наличии', lowStock: 'Мало на складе', inStock: 'В наличии' }
+    : { outOfStock: 'Out of Stock', lowStock: 'Low Stock', inStock: 'In Stock' };
+
   // Convert each product to a CSV row
   const rows = products.map(product => {
     const status = product.quantity === 0 
-      ? 'Out of Stock' 
+      ? statusLabels.outOfStock
       : product.quantity <= product.low_stock_threshold 
-        ? 'Low Stock' 
-        : 'In Stock';
+        ? statusLabels.lowStock
+        : statusLabels.inStock;
     const value = (product.quantity * Number(product.price)).toFixed(2);
     
     return [
-      `"${product.name.replace(/"/g, '""')}"`, // Escape quotes in name
-      `"${product.category.replace(/"/g, '""')}"`,
+      escapeCSV(product.name),
+      escapeCSV(product.category),
       product.quantity,
       Number(product.price).toFixed(2),
       product.low_stock_threshold,
       status,
       value
-    ].join(',');
+    ].join(DELIMITER);
   });
   
   // Combine header and rows
-  return [headers.join(','), ...rows].join('\n');
+  return [headers.join(DELIMITER), ...rows].join('\n');
 }
 
 /**
@@ -75,13 +97,19 @@ export function downloadCSV(csvContent: string, filename: string): void {
  * Export products to CSV and trigger download
  * @param products - Array of products to export
  * @param reportType - Type of report for filename
+ * @param language - Language for content
  */
 export function exportProductsToCSV(
   products: Product[], 
-  reportType: 'full' | 'low-stock' = 'full'
+  reportType: 'full' | 'low-stock' = 'full',
+  language: 'en' | 'ru' = 'en'
 ): void {
-  const csvContent = productsToCSV(products);
+  const csvContent = productsToCSV(products, language);
   const date = new Date().toISOString().split('T')[0];
-  const filename = `inventory-${reportType}-report-${date}.csv`;
+  const filenamePrefix = language === 'ru' ? 'инвентарь' : 'inventory';
+  const reportLabel = language === 'ru' 
+    ? (reportType === 'full' ? 'полный' : 'низкий-запас')
+    : reportType;
+  const filename = `${filenamePrefix}-${reportLabel}-${date}.csv`;
   downloadCSV(csvContent, filename);
 }
