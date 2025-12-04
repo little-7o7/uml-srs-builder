@@ -9,7 +9,9 @@
  * @version 2.0.0
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,19 +70,21 @@ const translations: Translations = {
     home: "На главную",
     slide: "Слайд",
     of: "из",
-    print: "Печать / PDF",
+    print: "Скачать PDF",
     prev: "Назад",
     next: "Далее",
     lang: "RU",
+    exporting: "Экспорт...",
   },
   en: {
     home: "Home",
     slide: "Slide",
     of: "of",
-    print: "Print / PDF",
+    print: "Download PDF",
     prev: "Previous",
     next: "Next",
     lang: "EN",
+    exporting: "Exporting...",
   },
 };
 
@@ -95,10 +99,73 @@ export default function Presentation() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [lang, setLang] = useState<Language>("ru");
+  const [isExporting, setIsExporting] = useState(false);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
 
   const t = translations[lang];
 
-  const handlePrint = () => window.print();
+  const exportToPdf = async () => {
+    setIsExporting(true);
+    try {
+      const pdf = new jsPDF("landscape", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      for (let i = 0; i < slides.length; i++) {
+        // Create temporary slide element
+        const tempDiv = document.createElement("div");
+        tempDiv.style.width = "1280px";
+        tempDiv.style.padding = "40px";
+        tempDiv.style.background = "white";
+        tempDiv.style.position = "absolute";
+        tempDiv.style.left = "-9999px";
+        tempDiv.className = "bg-background";
+        
+        tempDiv.innerHTML = `
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 8px; color: #1a1a1a;">${slides[i].title[lang]}</h1>
+            <p style="font-size: 18px; color: #666;">${slides[i].subtitle[lang]}</p>
+          </div>
+          <div id="slide-content-${i}" style="min-height: 400px;"></div>
+          <div style="text-align: right; margin-top: 20px; font-size: 12px; color: #999;">
+            ${i + 1} / ${slides.length}
+          </div>
+        `;
+        
+        document.body.appendChild(tempDiv);
+        
+        // Render slide content
+        const contentContainer = tempDiv.querySelector(`#slide-content-${i}`);
+        if (contentContainer) {
+          const { createRoot } = await import("react-dom/client");
+          const root = createRoot(contentContainer);
+          root.render(slides[i].content(lang));
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+
+        document.body.removeChild(tempDiv);
+      }
+
+      pdf.save(`SIMS_Presentation_${lang.toUpperCase()}.pdf`);
+    } catch (error) {
+      console.error("PDF export error:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const toggleLang = () => setLang(lang === "ru" ? "en" : "ru");
 
@@ -912,9 +979,9 @@ export default function Presentation() {
               <Languages className="h-4 w-4" />
               {t.lang}
             </Button>
-            <Button variant="outline" onClick={handlePrint} className="gap-2">
-              <Printer className="h-4 w-4" />
-              {t.print}
+            <Button variant="outline" onClick={exportToPdf} disabled={isExporting} className="gap-2">
+              <Download className="h-4 w-4" />
+              {isExporting ? t.exporting : t.print}
             </Button>
           </div>
         </div>
