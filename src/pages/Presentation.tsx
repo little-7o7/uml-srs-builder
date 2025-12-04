@@ -126,9 +126,6 @@ export default function Presentation() {
               <Badge key={tech} variant="secondary" className="text-sm px-4 py-2">{tech}</Badge>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">
-            {lang === "ru" ? "Университетский проект • 2024" : "University Project • 2024"}
-          </p>
         </div>
       ),
     },
@@ -891,9 +888,6 @@ export default function Presentation() {
             <Badge variant="outline" className="text-sm px-4 py-2">TypeScript</Badge>
             <Badge variant="outline" className="text-sm px-4 py-2">PostgreSQL</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {lang === "ru" ? "Университетский проект • 2024" : "University Project • 2024"}
-          </p>
         </div>
       ),
     },
