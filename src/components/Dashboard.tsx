@@ -11,6 +11,7 @@ import { AddProductDialog } from "./AddProductDialog";
 import { StatsCard } from "./StatsCard";
 import { SearchBar } from "./SearchBar";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { InventoryCharts } from "./InventoryCharts";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -147,6 +148,9 @@ export function Dashboard() {
             variant="danger"
           />
         </div>
+
+        {/* Inventory Charts */}
+        <InventoryCharts products={products} />
 
         {/* Low Stock Alerts */}
         {lowStockProducts.length > 0 && (
