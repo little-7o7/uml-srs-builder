@@ -27,7 +27,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { signOut, userRole } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
 
   const handleExportCSV = (type: 'full' | 'low-stock') => {
@@ -37,17 +37,19 @@ export default function Reports() {
     
     if (dataToExport.length === 0) {
       toast({
-        title: "Error",
-        description: "No data to export.",
+        title: language === 'ru' ? "Ошибка" : "Error",
+        description: language === 'ru' ? "Нет данных для экспорта." : "No data to export.",
         variant: "destructive",
       });
       return;
     }
     
-    exportProductsToCSV(dataToExport, type);
+    exportProductsToCSV(dataToExport, type, language);
     toast({
-      title: "Success",
-      description: `${dataToExport.length} products exported.`,
+      title: language === 'ru' ? "Успешно" : "Success",
+      description: language === 'ru' 
+        ? `${dataToExport.length} товаров экспортировано.`
+        : `${dataToExport.length} products exported.`,
     });
   };
 
