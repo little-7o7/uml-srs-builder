@@ -234,12 +234,6 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
           
-          {/* Hint */}
-          <div className="mt-6 pt-4 border-t border-border/50 text-center">
-            <p className="text-sm text-muted-foreground">
-              <strong>Demo credentials:</strong> admin / admin123
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
