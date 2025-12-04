@@ -122,7 +122,7 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+    <div className="grid gap-4 md:grid-cols-3 mb-6">
       {/* Stock Status Pie Chart */}
       <Card className="border-border/50">
         <CardHeader className="pb-2">
@@ -135,16 +135,16 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
               : "Distribution by status"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[200px]">
+        <CardContent className="pt-0">
+          <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stockStatusData}
                   cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  cy="45%"
+                  innerRadius={35}
+                  outerRadius={55}
                   paddingAngle={2}
                   dataKey="value"
                 >
@@ -155,7 +155,8 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="bottom"
-                  height={36}
+                  height={30}
+                  wrapperStyle={{ fontSize: '11px' }}
                   formatter={(value) => (
                     <span className="text-xs text-muted-foreground">{value}</span>
                   )}
@@ -178,22 +179,22 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
               : "Quantity by category"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[200px]">
+        <CardContent className="pt-0">
+          <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={categoryData}
+                  data={categoryData.slice(0, 5)}
                   cx="50%"
-                  cy="50%"
-                  outerRadius={80}
+                  cy="45%"
+                  outerRadius={55}
                   dataKey="value"
-                  label={({ name, percent }) =>
-                    percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : ""
+                  label={({ percent }) =>
+                    percent > 0.08 ? `${(percent * 100).toFixed(0)}%` : ""
                   }
                   labelLine={false}
                 >
-                  {categoryData.map((_, index) => (
+                  {categoryData.slice(0, 5).map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
@@ -203,10 +204,11 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="bottom"
-                  height={36}
+                  height={30}
+                  wrapperStyle={{ fontSize: '10px' }}
                   formatter={(value) => (
-                    <span className="text-xs text-muted-foreground">
-                      {value.length > 10 ? value.substring(0, 10) + "..." : value}
+                    <span className="text-[10px] text-muted-foreground">
+                      {value.length > 8 ? value.substring(0, 8) + ".." : value}
                     </span>
                   )}
                 />
@@ -217,22 +219,22 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
       </Card>
 
       {/* Value by Category Bar Chart */}
-      <Card className="border-border/50 md:col-span-2 lg:col-span-1">
+      <Card className="border-border/50">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">
-            {language === "ru" ? "Стоимость по категориям" : "Value by Category"}
+            {language === "ru" ? "Стоимость" : "Value"}
           </CardTitle>
           <CardDescription>
-            {language === "ru" ? "Топ категорий по стоимости" : "Top categories by value"}
+            {language === "ru" ? "Топ по стоимости" : "Top by value"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[200px]">
+        <CardContent className="pt-0">
+          <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={valueByCategory}
+                data={valueByCategory.slice(0, 5)}
                 layout="vertical"
-                margin={{ top: 5, right: 30, left: 5, bottom: 5 }}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -243,15 +245,15 @@ export function InventoryCharts({ products }: InventoryChartsProps) {
                 <XAxis
                   type="number"
                   tickFormatter={(value) => `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
                   axisLine={{ stroke: "hsl(var(--border))" }}
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
                   axisLine={{ stroke: "hsl(var(--border))" }}
-                  width={80}
+                  width={70}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
