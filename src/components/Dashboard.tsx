@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign } from "lucide-react";
+import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductTable } from "./ProductTable";
@@ -31,7 +31,7 @@ export function Dashboard() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, userRole, canModify, signOut } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,6 +92,10 @@ export function Dashboard() {
               <Button variant="outline" onClick={() => navigate("/reports")} className="hover:bg-primary/10">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {t.reports}
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/audit-log")} className="hover:bg-primary/10">
+                <History className="h-4 w-4 mr-2" />
+                {language === "ru" ? "История" : "History"}
               </Button>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
