@@ -27,7 +27,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, userRole, isAdmin, canModify, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,8 +92,16 @@ export function Dashboard() {
               </Button>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
-                {isAdmin && (
-                  <Badge className="bg-gradient-to-r from-primary to-secondary">Admin</Badge>
+                {userRole && (
+                  <Badge className={
+                    userRole === 'admin' 
+                      ? "bg-gradient-to-r from-primary to-secondary" 
+                      : userRole === 'viewer'
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-secondary"
+                  }>
+                    {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                  </Badge>
                 )}
               </div>
               <Button variant="ghost" onClick={signOut} className="hover:bg-destructive/10 hover:text-destructive">
@@ -190,7 +198,7 @@ export function Dashboard() {
                   onChange={setSearchQuery}
                   placeholder="Search products..."
                 />
-                {isAdmin && (
+                {canModify && (
                   <Button onClick={() => setIsAddDialogOpen(true)} className="whitespace-nowrap">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Product
@@ -204,7 +212,7 @@ export function Dashboard() {
               products={filteredProducts}
               loading={loading}
               onRefresh={fetchProducts}
-              isAdmin={isAdmin}
+              isAdmin={canModify}
             />
             {filteredProducts.length === 0 && !loading && (
               <div className="text-center py-8 text-muted-foreground">
