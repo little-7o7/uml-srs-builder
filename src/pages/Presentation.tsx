@@ -3,6 +3,7 @@
  * 
  * Страница презентации проекта SIMS для университета.
  * Отображает ключевую информацию об архитектуре, технологиях и функциях системы.
+ * Поддерживает экспорт в PDF через функцию печати браузера.
  * 
  * @author University Project
  * @version 1.0.0
@@ -28,7 +29,8 @@ import {
   Layers,
   Lock,
   Code,
-  CheckCircle
+  CheckCircle,
+  Printer
 } from "lucide-react";
 
 /**
@@ -43,15 +45,21 @@ interface Slide {
 
 /**
  * Компонент страницы презентации
- * Показывает слайды с информацией о проекте
  */
 export default function Presentation() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   /**
+   * Экспорт в PDF через функцию печати браузера
+   * Пользователь может выбрать "Сохранить как PDF" в диалоге печати
+   */
+  const handlePrint = () => {
+    window.print();
+  };
+
+  /**
    * Массив слайдов презентации
-   * Каждый слайд содержит заголовок, подзаголовок и контент
    */
   const slides: Slide[] = [
     // Слайд 1: Титульный
@@ -85,7 +93,6 @@ export default function Presentation() {
       content: (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Уровень представления */}
             <Card className="border-primary/30 bg-primary/5">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
@@ -102,7 +109,6 @@ export default function Presentation() {
               </CardContent>
             </Card>
 
-            {/* Бизнес-логика */}
             <Card className="border-secondary/30 bg-secondary/5">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-secondary/20 flex items-center justify-center mb-2">
@@ -119,7 +125,6 @@ export default function Presentation() {
               </CardContent>
             </Card>
 
-            {/* Уровень данных */}
             <Card className="border-accent/30 bg-accent/5">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
@@ -203,7 +208,6 @@ export default function Presentation() {
       subtitle: "Защита данных и доступа",
       content: (
         <div className="space-y-6">
-          {/* Роли */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -229,7 +233,6 @@ export default function Presentation() {
             </CardContent>
           </Card>
 
-          {/* RLS */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -253,7 +256,6 @@ export default function Presentation() {
       content: (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Products */}
             <Card className="border-primary/30">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -271,7 +273,6 @@ export default function Presentation() {
               </CardContent>
             </Card>
 
-            {/* User Roles */}
             <Card className="border-secondary/30">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -286,7 +287,6 @@ export default function Presentation() {
               </CardContent>
             </Card>
 
-            {/* Audit Log */}
             <Card className="border-accent/30">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -303,7 +303,6 @@ export default function Presentation() {
               </CardContent>
             </Card>
 
-            {/* Profiles */}
             <Card className="border-muted-foreground/30">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -362,14 +361,12 @@ export default function Presentation() {
     },
   ];
 
-  // Переход к следующему слайду
   const nextSlide = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     }
   };
 
-  // Переход к предыдущему слайду
   const prevSlide = () => {
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
@@ -378,22 +375,28 @@ export default function Presentation() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
-      {/* Заголовок */}
-      <header className="border-b bg-card/80 backdrop-blur-sm p-4">
+      {/* Header - скрывается при печати */}
+      <header className="border-b bg-card/80 backdrop-blur-sm p-4 print:hidden">
         <div className="container mx-auto flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
             <Home className="h-4 w-4" />
             На главную
           </Button>
-          <div className="text-sm text-muted-foreground">
-            Слайд {currentSlide + 1} / {slides.length}
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              Слайд {currentSlide + 1} / {slides.length}
+            </span>
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="h-4 w-4" />
+              Печать / PDF
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Контент слайда */}
       <main className="flex-1 container mx-auto p-6 flex flex-col justify-center">
-        <div className="max-w-4xl mx-auto w-full">
+        <div className="max-w-4xl mx-auto w-full bg-background p-8 rounded-lg print:shadow-none">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">{slides[currentSlide].title}</h1>
             <p className="text-xl text-muted-foreground">{slides[currentSlide].subtitle}</p>
@@ -405,8 +408,8 @@ export default function Presentation() {
         </div>
       </main>
 
-      {/* Навигация */}
-      <footer className="border-t bg-card/80 backdrop-blur-sm p-4">
+      {/* Footer - скрывается при печати */}
+      <footer className="border-t bg-card/80 backdrop-blur-sm p-4 print:hidden">
         <div className="container mx-auto flex items-center justify-between">
           <Button
             variant="outline"
@@ -418,7 +421,6 @@ export default function Presentation() {
             Назад
           </Button>
 
-          {/* Индикаторы слайдов */}
           <div className="flex gap-2">
             {slides.map((_, index) => (
               <button
