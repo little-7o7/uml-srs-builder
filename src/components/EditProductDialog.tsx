@@ -1,3 +1,22 @@
+/**
+ * EditProductDialog.tsx - Диалог редактирования товара
+ * 
+ * Модальное окно для изменения данных существующего товара.
+ * Включает валидацию данных и обработку ошибок.
+ * 
+ * @component
+ * @example
+ * <EditProductDialog 
+ *   open={isOpen} 
+ *   onOpenChange={setIsOpen} 
+ *   product={selectedProduct}
+ *   onSuccess={handleSuccess} 
+ * />
+ * 
+ * @author University Project
+ * @version 1.0.0
+ */
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +27,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { z } from "zod";
 
-// Validation schema for product updates
+/**
+ * Схема валидации данных товара
+ * Идентична схеме в AddProductDialog для консистентности
+ */
 const productSchema = z.object({
   name: z.string().trim().min(1, "Product name is required").max(200, "Name too long"),
   category: z.string().trim().min(1, "Category is required").max(100, "Category too long"),
@@ -17,6 +39,9 @@ const productSchema = z.object({
   low_stock_threshold: z.number().int().min(0, "Threshold must be 0 or greater"),
 });
 
+/**
+ * Интерфейс товара
+ */
 interface Product {
   id: string;
   name: string;
@@ -26,15 +51,32 @@ interface Product {
   low_stock_threshold: number;
 }
 
+/**
+ * Props для компонента EditProductDialog
+ */
 interface EditProductDialogProps {
+  /** Флаг открытия диалога */
   open: boolean;
+  /** Callback для изменения состояния открытия */
   onOpenChange: (open: boolean) => void;
+  /** Редактируемый товар */
   product: Product;
+  /** Callback, вызываемый после успешного обновления */
   onSuccess: () => void;
 }
 
+/**
+ * Компонент диалога редактирования товара
+ * 
+ * Отличия от AddProductDialog:
+ * - Предзаполнение формы данными товара
+ * - Использование UPDATE вместо INSERT
+ * - Синхронизация формы при смене товара
+ */
 export function EditProductDialog({ open, onOpenChange, product, onSuccess }: EditProductDialogProps) {
   const [loading, setLoading] = useState(false);
+  
+  // Инициализация формы данными товара
   const [formData, setFormData] = useState({
     name: product.name,
     category: product.category,
@@ -42,10 +84,14 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
     price: Number(product.price),
     low_stock_threshold: product.low_stock_threshold,
   });
+  
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  // Update form when product changes
+  /**
+   * Синхронизация формы при изменении редактируемого товара
+   * Необходимо для корректного отображения данных при переключении между товарами
+   */
   useEffect(() => {
     setFormData({
       name: product.name,
@@ -56,12 +102,20 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
     });
   }, [product]);
 
-  // Handle form submission
+  /**
+   * Обработчик отправки формы
+   * 
+   * Алгоритм:
+   * 1. Валидация данных через Zod
+   * 2. Обновление товара в Supabase по ID
+   * 3. Обработка ошибок
+   * 4. Закрытие диалога при успехе
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Validate form data
+      // Валидация данных
       const validatedData = productSchema.parse({
         ...formData,
         name: formData.name.trim(),
@@ -70,7 +124,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
 
       setLoading(true);
 
-      // Update product in database
+      // Обновление товара в базе данных
       const { error } = await supabase
         .from("products")
         .update({
@@ -80,10 +134,10 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
           price: validatedData.price,
           low_stock_threshold: validatedData.low_stock_threshold,
         })
-        .eq("id", product.id);
+        .eq("id", product.id); // Фильтр по ID товара
 
       if (error) {
-        // Check for duplicate product error
+        // Проверка на дубликат
         if (error.code === "23505") {
           toast({
             title: t.duplicateProduct,
@@ -95,6 +149,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
         throw error;
       }
 
+      // Успешное обновление
       toast({
         title: t.productUpdated,
         description: t.productUpdatedDesc,
@@ -102,6 +157,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
 
       onOpenChange(false);
       onSuccess();
+      
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -130,7 +186,10 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
             {t.updateProductDetails}
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Форма редактирования - структура идентична AddProductDialog */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Название товара */}
           <div className="space-y-2">
             <Label htmlFor="edit-name">{t.productName} *</Label>
             <Input
@@ -143,6 +202,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
             />
           </div>
 
+          {/* Категория */}
           <div className="space-y-2">
             <Label htmlFor="edit-category">{t.category} *</Label>
             <Input
@@ -155,6 +215,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
             />
           </div>
 
+          {/* Количество и Цена */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-quantity">{t.quantity} *</Label>
@@ -182,6 +243,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
             </div>
           </div>
 
+          {/* Порог низкого запаса */}
           <div className="space-y-2">
             <Label htmlFor="edit-threshold">{t.lowStockThreshold} *</Label>
             <Input
@@ -197,6 +259,7 @@ export function EditProductDialog({ open, onOpenChange, product, onSuccess }: Ed
             </p>
           </div>
 
+          {/* Кнопки */}
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t.cancel}
