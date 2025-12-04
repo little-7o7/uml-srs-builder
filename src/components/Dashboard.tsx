@@ -93,10 +93,12 @@ export function Dashboard() {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 {t.reports}
               </Button>
-              <Button variant="outline" onClick={() => navigate("/audit-log")} className="hover:bg-primary/10">
-                <History className="h-4 w-4 mr-2" />
-                {language === "ru" ? "История" : "History"}
-              </Button>
+              {userRole === 'admin' && (
+                <Button variant="outline" onClick={() => navigate("/audit-log")} className="hover:bg-primary/10">
+                  <History className="h-4 w-4 mr-2" />
+                  {language === "ru" ? "История" : "History"}
+                </Button>
+              )}
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
                 {userRole && (

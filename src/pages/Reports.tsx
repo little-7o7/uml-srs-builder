@@ -179,59 +179,61 @@ export default function Reports() {
           </Card>
         </div>
 
-        {/* Export Actions */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>{t.reports}</CardTitle>
-            <CardDescription>{t.reportsDescription}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-2">{t.exportFull}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    onClick={() => handleExport('full', 'xlsx')} 
-                    variant="default"
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Excel (.xlsx)
-                  </Button>
-                  <Button 
-                    onClick={() => handleExport('full', 'csv')} 
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    CSV
-                  </Button>
+        {/* Export Actions - Admin Only */}
+        {userRole === 'admin' && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t.reports}</CardTitle>
+              <CardDescription>{t.reportsDescription}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium mb-2">{t.exportFull}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      onClick={() => handleExport('full', 'xlsx')} 
+                      variant="default"
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Excel (.xlsx)
+                    </Button>
+                    <Button 
+                      onClick={() => handleExport('full', 'csv')} 
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      CSV
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-2">{t.exportLowStock}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      onClick={() => handleExport('low-stock', 'xlsx')} 
+                      variant="default"
+                      className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
+                    >
+                      <Download className="h-4 w-4" />
+                      Excel (.xlsx)
+                    </Button>
+                    <Button 
+                      onClick={() => handleExport('low-stock', 'csv')} 
+                      variant="outline"
+                      className="gap-2 border-warning/50 hover:bg-warning/10"
+                    >
+                      <Download className="h-4 w-4" />
+                      CSV
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div>
-                <p className="text-sm font-medium mb-2">{t.exportLowStock}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    onClick={() => handleExport('low-stock', 'xlsx')} 
-                    variant="default"
-                    className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
-                  >
-                    <Download className="h-4 w-4" />
-                    Excel (.xlsx)
-                  </Button>
-                  <Button 
-                    onClick={() => handleExport('low-stock', 'csv')} 
-                    variant="outline"
-                    className="gap-2 border-warning/50 hover:bg-warning/10"
-                  >
-                    <Download className="h-4 w-4" />
-                    CSV
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Category Breakdown */}
         <Card className="mb-6">
