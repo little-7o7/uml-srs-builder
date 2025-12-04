@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Package } from "lucide-react";
+import { Package, User, Mail } from "lucide-react";
 import { z } from "zod";
 
 // Schema for input validation
@@ -17,11 +17,16 @@ const authSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters").max(100).optional(),
 });
 
+const usernameSchema = z.object({
+  username: z.string().min(2, "Username must be at least 2 characters").max(50),
+});
+
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -34,12 +39,64 @@ export default function Auth() {
     });
   }, [navigate]);
 
+  // Handle anonymous login with username
+  const handleAnonymousLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      usernameSchema.parse({ username });
+      
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInAnonymously({
+        options: {
+          data: {
+            full_name: username.trim(),
+          },
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update profile with username
+      if (data.user) {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          full_name: username.trim(),
+          email: `${username.toLowerCase().replace(/\s+/g, '')}@anonymous.local`,
+        });
+      }
+
+      toast({
+        title: `Welcome, ${username}!`,
+        description: "You are now logged in",
+      });
+      
+      navigate("/");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Validate input
       authSchema.parse({ email, password });
       
       setIsLoading(true);
@@ -81,7 +138,6 @@ export default function Auth() {
     e.preventDefault();
     
     try {
-      // Validate input
       authSchema.parse({ email, password, fullName });
       
       setIsLoading(true);
@@ -147,15 +203,44 @@ export default function Auth() {
           <CardDescription className="text-base">Simple Inventory Management System</CardDescription>
         </CardHeader>
         <CardContent className="pb-6">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs defaultValue="quick" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="quick" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <User className="h-4 w-4 mr-1" />
+                Quick
+              </TabsTrigger>
               <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Login
+                <Mail className="h-4 w-4 mr-1" />
+                Email
               </TabsTrigger>
               <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 Sign Up
               </TabsTrigger>
             </TabsList>
+            
+            {/* Quick anonymous login */}
+            <TabsContent value="quick">
+              <form onSubmit={handleAnonymousLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Your Name</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    maxLength={50}
+                  />
+                </div>
+                <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={isLoading}>
+                  {isLoading ? "Entering..." : "Enter as Guest"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Quick access without email registration
+                </p>
+              </form>
+            </TabsContent>
             
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
