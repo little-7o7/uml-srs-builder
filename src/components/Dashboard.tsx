@@ -5,14 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Package, Plus, TrendingDown, AlertCircle, BarChart3, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductTable } from "./ProductTable";
 import { AddProductDialog } from "./AddProductDialog";
 import { StatsCard } from "./StatsCard";
 import { SearchBar } from "./SearchBar";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
-// Interface for product data structure
 interface Product {
   id: string;
   name: string;
@@ -27,11 +28,11 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, userRole, isAdmin, canModify, signOut } = useAuth();
+  const { user, userRole, canModify, signOut } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch products from database
   const fetchProducts = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -42,8 +43,8 @@ export function Dashboard() {
     if (error) {
       console.error("Error fetching products:", error);
       toast({
-        title: "Error Loading Products",
-        description: "Failed to load products. Please try again.",
+        title: "Error",
+        description: "Failed to load products.",
         variant: "destructive",
       });
     } else {
@@ -56,13 +57,11 @@ export function Dashboard() {
     fetchProducts();
   }, []);
 
-  // Calculate statistics
   const totalProducts = products.length;
   const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold);
   const outOfStockProducts = products.filter(p => p.quantity === 0);
   const totalValue = products.reduce((sum, p) => sum + (p.quantity * Number(p.price)), 0);
   
-  // Filter products based on search query
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -80,15 +79,16 @@ export function Dashboard() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  SIMS Dashboard
+                  {t.simsDashboard}
                 </h1>
-                <p className="text-sm text-muted-foreground">Simple Inventory Management System</p>
+                <p className="text-sm text-muted-foreground">{t.simsDescription}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <Button variant="outline" onClick={() => navigate("/reports")} className="hover:bg-primary/10">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Reports
+                {t.reports}
               </Button>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
@@ -105,7 +105,7 @@ export function Dashboard() {
                 )}
               </div>
               <Button variant="ghost" onClick={signOut} className="hover:bg-destructive/10 hover:text-destructive">
-                Logout
+                {t.logout}
               </Button>
             </div>
           </div>
@@ -116,34 +116,34 @@ export function Dashboard() {
       <div className="container mx-auto px-4 py-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <StatsCard
-            title="Total Products"
+            title={t.totalProducts}
             value={totalProducts}
             icon={Package}
-            description="Active inventory items"
+            description={t.activeInventoryItems}
             variant="default"
           />
           
           <StatsCard
-            title="Total Value"
+            title={t.totalValue}
             value={`$${totalValue.toFixed(2)}`}
             icon={DollarSign}
-            description="Current inventory value"
+            description={t.currentInventoryValue}
             variant="success"
           />
           
           <StatsCard
-            title="Low Stock"
+            title={t.lowStock}
             value={lowStockProducts.length}
             icon={TrendingDown}
-            description="Items need restocking"
+            description={t.itemsNeedRestocking}
             variant="warning"
           />
           
           <StatsCard
-            title="Out of Stock"
+            title={t.outOfStock}
             value={outOfStockProducts.length}
             icon={AlertCircle}
-            description="Items unavailable"
+            description={t.itemsUnavailable}
             variant="danger"
           />
         </div>
@@ -156,10 +156,10 @@ export function Dashboard() {
                 <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center animate-pulse">
                   <AlertCircle className="h-5 w-5" />
                 </div>
-                Low Stock Alert
+                {t.lowStockAlert}
               </CardTitle>
               <CardDescription>
-                {lowStockProducts.length} product(s) are running low on stock
+                {lowStockProducts.length} {t.productsRunningLow}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -175,7 +175,7 @@ export function Dashboard() {
                       <p className="text-sm text-muted-foreground">{product.category}</p>
                     </div>
                     <Badge variant={product.quantity === 0 ? "destructive" : "secondary"} className="font-semibold">
-                      {product.quantity} {product.quantity === 0 ? '⚠️' : 'units'}
+                      {product.quantity} {product.quantity === 0 ? '⚠️' : t.units}
                     </Badge>
                   </div>
                 ))}
@@ -189,19 +189,19 @@ export function Dashboard() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-xl">Product Inventory</CardTitle>
-                <CardDescription>Manage your product stock and pricing</CardDescription>
+                <CardTitle className="text-xl">{t.productInventory}</CardTitle>
+                <CardDescription>{t.manageStock}</CardDescription>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <SearchBar 
                   value={searchQuery}
                   onChange={setSearchQuery}
-                  placeholder="Search products..."
+                  placeholder={t.searchProducts}
                 />
                 {canModify && (
                   <Button onClick={() => setIsAddDialogOpen(true)} className="whitespace-nowrap">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Product
+                    {t.addProduct}
                   </Button>
                 )}
               </div>
@@ -216,7 +216,7 @@ export function Dashboard() {
             />
             {filteredProducts.length === 0 && !loading && (
               <div className="text-center py-8 text-muted-foreground">
-                {searchQuery ? `No products found matching "${searchQuery}"` : "No products in inventory"}
+                {searchQuery ? `${t.noProductsFound} "${searchQuery}"` : t.noProducts}
               </div>
             )}
           </CardContent>

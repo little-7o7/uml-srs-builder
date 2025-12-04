@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Package, TrendingDown, AlertCircle, DollarSign, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { exportProductsToCSV } from "@/utils/csvExport";
 import { useToast } from "@/hooks/use-toast";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-// Interface for product data structure
 interface Product {
   id: string;
   name: string;
@@ -26,9 +27,9 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { signOut, userRole } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
 
-  // Handle CSV export
   const handleExportCSV = (type: 'full' | 'low-stock') => {
     const dataToExport = type === 'low-stock' 
       ? products.filter(p => p.quantity <= p.low_stock_threshold)
@@ -36,8 +37,8 @@ export default function Reports() {
     
     if (dataToExport.length === 0) {
       toast({
-        title: "No Data to Export",
-        description: "There are no products to export.",
+        title: "Error",
+        description: "No data to export.",
         variant: "destructive",
       });
       return;
@@ -45,12 +46,11 @@ export default function Reports() {
     
     exportProductsToCSV(dataToExport, type);
     toast({
-      title: "Export Successful",
-      description: `${dataToExport.length} products exported to CSV.`,
+      title: "Success",
+      description: `${dataToExport.length} products exported.`,
     });
   };
 
-  // Fetch all products for reporting
   useEffect(() => {
     const fetchProducts = async () => {
       const { data, error } = await supabase
@@ -67,27 +67,24 @@ export default function Reports() {
     fetchProducts();
   }, []);
 
-  // Calculate report statistics
   const totalProducts = products.length;
   const lowStockProducts = products.filter(p => p.quantity <= p.low_stock_threshold && p.quantity > 0);
   const outOfStockProducts = products.filter(p => p.quantity === 0);
   const totalValue = products.reduce((sum, p) => sum + (p.quantity * Number(p.price)), 0);
   const totalUnits = products.reduce((sum, p) => sum + p.quantity, 0);
 
-  // Group products by category
   const categoryCounts = products.reduce((acc, product) => {
     acc[product.category] = (acc[product.category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  // Get stock status badge
   const getStockBadge = (product: Product) => {
     if (product.quantity === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
+      return <Badge variant="destructive">{t.outOfStock}</Badge>;
     } else if (product.quantity <= product.low_stock_threshold) {
-      return <Badge className="bg-warning text-warning-foreground">Low Stock</Badge>;
+      return <Badge className="bg-warning text-warning-foreground">{t.lowStock}</Badge>;
     } else {
-      return <Badge className="bg-success text-success-foreground">In Stock</Badge>;
+      return <Badge className="bg-success text-success-foreground">{t.inStock}</Badge>;
     }
   };
 
@@ -102,11 +99,12 @@ export default function Reports() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Inventory Reports</h1>
-                <p className="text-sm text-muted-foreground">Detailed stock analysis and statistics</p>
+                <h1 className="text-2xl font-bold text-foreground">{t.inventoryReports}</h1>
+                <p className="text-sm text-muted-foreground">{t.reportsDescription}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               {userRole && (
                 <Badge className={
                   userRole === 'admin' 
@@ -119,7 +117,7 @@ export default function Reports() {
                 </Badge>
               )}
               <Button variant="ghost" onClick={signOut}>
-                Logout
+                {t.logout}
               </Button>
             </div>
           </div>
@@ -131,45 +129,45 @@ export default function Reports() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              <CardTitle className="text-sm font-medium">{t.totalProducts}</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalProducts}</div>
-              <p className="text-xs text-muted-foreground">{totalUnits} total units</p>
+              <p className="text-xs text-muted-foreground">{totalUnits} {t.units}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+              <CardTitle className="text-sm font-medium">{t.totalValue}</CardTitle>
               <DollarSign className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">${totalValue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Current inventory value</p>
+              <p className="text-xs text-muted-foreground">{t.currentInventoryValue}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+              <CardTitle className="text-sm font-medium">{t.lowStock}</CardTitle>
               <TrendingDown className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-warning">{lowStockProducts.length}</div>
-              <p className="text-xs text-muted-foreground">Need restocking</p>
+              <p className="text-xs text-muted-foreground">{t.itemsNeedRestocking}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+              <CardTitle className="text-sm font-medium">{t.outOfStock}</CardTitle>
               <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">{outOfStockProducts.length}</div>
-              <p className="text-xs text-muted-foreground">Unavailable items</p>
+              <p className="text-xs text-muted-foreground">{t.itemsUnavailable}</p>
             </CardContent>
           </Card>
         </div>
@@ -177,8 +175,8 @@ export default function Reports() {
         {/* Export Actions */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Export Reports</CardTitle>
-            <CardDescription>Download inventory data as CSV files</CardDescription>
+            <CardTitle>{t.reports}</CardTitle>
+            <CardDescription>{t.reportsDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
@@ -188,7 +186,7 @@ export default function Reports() {
                 className="gap-2"
               >
                 <Download className="h-4 w-4" />
-                Export Full Inventory
+                {t.exportFull}
               </Button>
               <Button 
                 onClick={() => handleExportCSV('low-stock')} 
@@ -196,7 +194,7 @@ export default function Reports() {
                 className="gap-2 border-warning/50 hover:bg-warning/10"
               >
                 <Download className="h-4 w-4" />
-                Export Low Stock Items
+                {t.exportLowStock}
               </Button>
             </div>
           </CardContent>
@@ -205,15 +203,14 @@ export default function Reports() {
         {/* Category Breakdown */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Products by Category</CardTitle>
-            <CardDescription>Distribution of products across categories</CardDescription>
+            <CardTitle>{t.categoryBreakdown}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.entries(categoryCounts).map(([category, count]) => (
                 <div key={category} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <span className="font-medium">{category}</span>
-                  <Badge variant="secondary">{count} items</Badge>
+                  <Badge variant="secondary">{count} {t.items}</Badge>
                 </div>
               ))}
             </div>
@@ -224,19 +221,18 @@ export default function Reports() {
         {lowStockProducts.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-warning">Low Stock Report</CardTitle>
-              <CardDescription>Products that need immediate restocking</CardDescription>
+              <CardTitle className="text-warning">{t.lowStockItems}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Current Stock</TableHead>
-                      <TableHead className="text-right">Threshold</TableHead>
-                      <TableHead className="text-right">Price</TableHead>
+                      <TableHead>{t.name}</TableHead>
+                      <TableHead>{t.category}</TableHead>
+                      <TableHead className="text-right">{t.quantity}</TableHead>
+                      <TableHead className="text-right">{t.threshold}</TableHead>
+                      <TableHead className="text-right">{t.price}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -259,25 +255,24 @@ export default function Reports() {
         {/* Full Inventory Report */}
         <Card>
           <CardHeader>
-            <CardTitle>Complete Inventory List</CardTitle>
-            <CardDescription>All products with current stock status</CardDescription>
+            <CardTitle>{t.allInventory}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              <div className="text-center py-8 text-muted-foreground">{t.loading}</div>
             ) : products.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No products in inventory</div>
+              <div className="text-center py-8 text-muted-foreground">{t.noProducts}</div>
             ) : (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Quantity</TableHead>
-                      <TableHead className="text-right">Price</TableHead>
-                      <TableHead className="text-right">Value</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t.name}</TableHead>
+                      <TableHead>{t.category}</TableHead>
+                      <TableHead className="text-right">{t.quantity}</TableHead>
+                      <TableHead className="text-right">{t.price}</TableHead>
+                      <TableHead className="text-right">{t.value}</TableHead>
+                      <TableHead>{t.status}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

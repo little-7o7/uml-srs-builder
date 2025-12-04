@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, RefreshCw } from "lucide-react";
 import { EditProductDialog } from "./EditProductDialog";
 import { DeleteProductDialog } from "./DeleteProductDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// Interface for product data structure
 interface Product {
   id: string;
   name: string;
@@ -26,15 +26,15 @@ interface ProductTableProps {
 export function ProductTable({ products, loading, onRefresh, isAdmin }: ProductTableProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const { t } = useLanguage();
 
-  // Get stock status badge based on quantity
   const getStockBadge = (product: Product) => {
     if (product.quantity === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
+      return <Badge variant="destructive">{t.outOfStock}</Badge>;
     } else if (product.quantity <= product.low_stock_threshold) {
-      return <Badge className="bg-warning text-warning-foreground">Low Stock</Badge>;
+      return <Badge className="bg-warning text-warning-foreground">{t.lowStock}</Badge>;
     } else {
-      return <Badge className="bg-success text-success-foreground">In Stock</Badge>;
+      return <Badge className="bg-success text-success-foreground">{t.inStock}</Badge>;
     }
   };
 
@@ -49,7 +49,7 @@ export function ProductTable({ products, loading, onRefresh, isAdmin }: ProductT
   if (products.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No products found. Add your first product to get started.</p>
+        <p className="text-muted-foreground">{t.noProducts}</p>
       </div>
     );
   }
@@ -60,12 +60,12 @@ export function ProductTable({ products, loading, onRefresh, isAdmin }: ProductT
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Quantity</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead>Status</TableHead>
-              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+              <TableHead>{t.name}</TableHead>
+              <TableHead>{t.category}</TableHead>
+              <TableHead className="text-right">{t.quantity}</TableHead>
+              <TableHead className="text-right">{t.price}</TableHead>
+              <TableHead>{t.status}</TableHead>
+              {isAdmin && <TableHead className="text-right">{t.actions}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,7 +102,6 @@ export function ProductTable({ products, loading, onRefresh, isAdmin }: ProductT
         </Table>
       </div>
 
-      {/* Edit Product Dialog */}
       {editingProduct && (
         <EditProductDialog
           open={!!editingProduct}
@@ -115,7 +114,6 @@ export function ProductTable({ products, loading, onRefresh, isAdmin }: ProductT
         />
       )}
 
-      {/* Delete Product Dialog */}
       {deletingProduct && (
         <DeleteProductDialog
           open={!!deletingProduct}
