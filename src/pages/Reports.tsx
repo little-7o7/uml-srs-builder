@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { exportProductsToCSV } from "@/utils/csvExport";
+import { exportToCSV, exportToExcel } from "@/utils/exportUtils";
 import { useToast } from "@/hooks/use-toast";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -30,7 +30,7 @@ export default function Reports() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
 
-  const handleExportCSV = (type: 'full' | 'low-stock') => {
+  const handleExport = (type: 'full' | 'low-stock', format: 'csv' | 'xlsx') => {
     const dataToExport = type === 'low-stock' 
       ? products.filter(p => p.quantity <= p.low_stock_threshold)
       : products;
@@ -44,7 +44,12 @@ export default function Reports() {
       return;
     }
     
-    exportProductsToCSV(dataToExport, type, language);
+    if (format === 'xlsx') {
+      exportToExcel(dataToExport, type, language);
+    } else {
+      exportToCSV(dataToExport, type, language);
+    }
+    
     toast({
       title: language === 'ru' ? "Успешно" : "Success",
       description: language === 'ru' 
@@ -181,23 +186,49 @@ export default function Reports() {
             <CardDescription>{t.reportsDescription}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Button 
-                onClick={() => handleExportCSV('full')} 
-                variant="outline"
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {t.exportFull}
-              </Button>
-              <Button 
-                onClick={() => handleExportCSV('low-stock')} 
-                variant="outline"
-                className="gap-2 border-warning/50 hover:bg-warning/10"
-              >
-                <Download className="h-4 w-4" />
-                {t.exportLowStock}
-              </Button>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-2">{t.exportFull}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    onClick={() => handleExport('full', 'xlsx')} 
+                    variant="default"
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Excel (.xlsx)
+                  </Button>
+                  <Button 
+                    onClick={() => handleExport('full', 'csv')} 
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    CSV
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2">{t.exportLowStock}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    onClick={() => handleExport('low-stock', 'xlsx')} 
+                    variant="default"
+                    className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
+                  >
+                    <Download className="h-4 w-4" />
+                    Excel (.xlsx)
+                  </Button>
+                  <Button 
+                    onClick={() => handleExport('low-stock', 'csv')} 
+                    variant="outline"
+                    className="gap-2 border-warning/50 hover:bg-warning/10"
+                  >
+                    <Download className="h-4 w-4" />
+                    CSV
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
